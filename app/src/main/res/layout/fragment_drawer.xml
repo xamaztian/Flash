@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingBottom="16dp"
-    tools:context="cl.xamaztian.flash.DrawerFragment">
+    tools:context="cl.xamaztian.flash.views.main.drawer.DrawerFragment">
 
     <com.github.siyamed.shapeimageview.CircularImageView
         android:id="@+id/avatarCI"

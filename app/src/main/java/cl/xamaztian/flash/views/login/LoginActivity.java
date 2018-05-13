@@ -1,20 +1,18 @@
-package cl.xamaztian.flash;
+package cl.xamaztian.flash.views.login;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.view.MotionEvent;
-import android.view.View;
 
 import com.firebase.ui.auth.AuthUI;
-import com.firebase.ui.auth.ResultCodes;
 
 import java.util.Arrays;
 
-public class LoginActivity extends AppCompatActivity {
+import cl.xamaztian.flash.R;
+import cl.xamaztian.flash.data.CurrentUser;
+import cl.xamaztian.flash.views.main.MainActivity;
+
+public class LoginActivity extends AppCompatActivity implements LoginCallback{
 
     private static final int RC_SIGN_IN = 123;
 
@@ -24,13 +22,12 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_login);
 
-        if (new CurrentUser().getCurrentUser() != null)
-            logged();
-        else
-            signUp();
+        LoginValidator loginValidator = new LoginValidator(this);
+        loginValidator.checkLogin();
     }
 
-    private void signUp() {
+    @Override
+    public void signUp() {
         startActivityForResult(
                 AuthUI.getInstance()
                         .createSignInIntentBuilder()
@@ -56,7 +53,8 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void logged(){
+    @Override
+    public void logged(){
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
