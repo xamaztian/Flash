@@ -2,14 +2,17 @@ package cl.xamaztian.flash.views.main.drawer;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,24 +23,25 @@ import android.widget.Toast;
 import com.firebase.ui.auth.AuthUI;
 import com.frosquivel.magicalcamera.MagicalCamera;
 import com.frosquivel.magicalcamera.MagicalPermissions;
+import com.github.siyamed.shapeimageview.CircularImageView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.squareup.picasso.Picasso;
 
 import cl.xamaztian.flash.R;
 import cl.xamaztian.flash.data.CurrentUser;
 import cl.xamaztian.flash.views.login.LoginActivity;
 
-import static android.app.Activity.RESULT_OK;
-
 
 /**
  * A simple {@link Fragment} subclass.
  */
-public class DrawerFragment extends Fragment {
+public class DrawerFragment extends Fragment implements PhotoCallback {
 
     private MagicalPermissions magicalPermissions;
     private MagicalCamera magicalCamera;
-    private int PHOTO_SIZE = 30;
+    private int PHOTO_SIZE = 40;
+    private CircularImageView avatar;
 
     public DrawerFragment() {
         // Required empty public constructor
@@ -70,6 +74,9 @@ public class DrawerFragment extends Fragment {
             }
         });
 
+        TextView userEmail = view.findViewById(R.id.emailTv);
+        userEmail.setText(new CurrentUser().email());
+
         String[] permissions = new String[]{
                 Manifest.permission.CAMERA,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -79,33 +86,42 @@ public class DrawerFragment extends Fragment {
         magicalPermissions = new MagicalPermissions(this, permissions);
         magicalCamera = new MagicalCamera(getActivity(), PHOTO_SIZE, magicalPermissions);
 
-        TextView userEmail = view.findViewById(R.id.emailTv);
-        userEmail.setText(new CurrentUser().email());
+        avatar = view.findViewById(R.id.avatarCI);
 
-        Toast.makeText(getContext(), "onViewCreated", Toast.LENGTH_SHORT).show();
+        new PhotoValidation(getContext(), this).validate();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         magicalPermissions.permissionResult(requestCode, permissions, grantResults);
-        Toast.makeText(getContext(), "onRequestPermissionsResult", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         magicalCamera.resultPhoto(requestCode, resultCode, data);
-        Toast.makeText(getContext(), "onActivityResult", Toast.LENGTH_SHORT).show();
-        if (RESULT_OK == resultCode) {
+
+        if (Activity.RESULT_OK == resultCode){
             Bitmap photo = magicalCamera.getPhoto();
-            String path = magicalCamera.savePhotoInMemoryDevice(photo, "avatar", "Flash", MagicalCamera.JPEG, true);
-        } else {
+            String path =  magicalCamera.savePhotoInMemoryDevice(photo
+                    , "avatar"
+                    , "Flash"
+                    , MagicalCamera.JPEG
+                    , true);
+            Log.d("path", path);
+
+            path = "file://" + path;
+            setPhoto(path);
+
+            new UploadPhoto(getContext()).ToFirebase(path);
+        }else{
             requestSelfie();
         }
     }
 
     private void requestSelfie() {
+        Toast.makeText(getActivity(), "requestSelfie", Toast.LENGTH_SHORT).show();
         new AlertDialog.Builder(getActivity())
                 .setTitle("Selfie :)")
                 .setMessage("Para completar el registro debes tener una selfie actualizada")
@@ -116,6 +132,21 @@ public class DrawerFragment extends Fragment {
                         magicalCamera.takeFragmentPhoto(DrawerFragment.this);
                         dialogInterface.dismiss();
                     }
-                });
+                })
+        .show();
+    }
+
+    private void setPhoto(String url){
+        Picasso.get().load(url).fit().centerCrop().into(avatar);
+    }
+
+    @Override
+    public void emptyPhoto() {
+        requestSelfie();
+    }
+
+    @Override
+    public void photoAvailable(String url) {
+        setPhoto(url);
     }
 }
