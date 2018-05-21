@@ -11,7 +11,9 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import cl.xamaztian.flash.data.CurrentUser;
+import cl.xamaztian.flash.data.Nodes;
 import cl.xamaztian.flash.data.PhotoPreference;
+import cl.xamaztian.flash.models.User;
 
 public class UploadPhoto {
     private Context context;
@@ -21,7 +23,7 @@ public class UploadPhoto {
     }
 
     public void ToFirebase(String path) {
-        CurrentUser currentUser = new CurrentUser();
+        final CurrentUser currentUser = new CurrentUser();
 
         String folder = currentUser.sanitizedEmail(currentUser.email() + "/");
         String photoName = "avatar.jpg";
@@ -37,6 +39,14 @@ public class UploadPhoto {
                 String url = fullUrl[0];
 
                 new PhotoPreference(context).photoSave(url);
+
+                User user = new User();
+                user.setEmail(currentUser.email());
+                user.setName(currentUser.getCurrentUser().getDisplayName());
+                user.setPhoto(url);
+                user.setUid(currentUser.getUid());
+                String key = currentUser.sanitizedEmail(currentUser.email());
+                new Nodes().user(key).setValue(user);
             }
         });
 
