@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:gravity="center"
+    android:background="@color/colorPrimaryDark">
+
+    <include layout="@layout/input_send" />
+
+    <com.github.ybq.android.spinkit.SpinKitView
+        android:id="@+id/loadingSkv"
+        style="@style/SpinKitView.Large.Wave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+       android:visibility="gone"
+        app:SpinKit_Color="@android:color/white" />
+</LinearLayout>

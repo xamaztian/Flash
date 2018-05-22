@@ -25,9 +25,7 @@ public class CurrentUser {
         return currentUser.getPhotoUrl();
     }
 
-    public String sanitizedEmail(String email) {
-        return email.replace("@", "AT").replace(".", "DOT");
-    }
+
 
     public String getUid()
     {
